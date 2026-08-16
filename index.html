@@ -314,33 +314,54 @@
         }
 
         function executeSend() {
-            const textContent = chatMsg.value.trim();
-            if (textContent === "" && selectedFilesBucket.length === 0) return;
+    const textContent = chatMsg.value.trim();
+    if (textContent === "" && selectedFilesBucket.length === 0) return;
 
-            // แสดงข้อความฝั่ง User
-            let displayMsg = textContent;
-            if (selectedFilesBucket.length > 0) {
-                displayMsg += ` [แนบกำลังพล Chibi: ${selectedFilesBucket.length} นาย]`;
-            }
-            appendChatMessage("user", displayMsg);
+    let displayMsg = textContent;
+    if (selectedFilesBucket.length > 0) {
+        displayMsg += ` [แนบกำลังพล Chibi: ${selectedFilesBucket.length} นาย]`;
+    }
+    appendChatMessage("user", displayMsg);
 
-            const fileCount = selectedFilesBucket.length;
+    const fileCount = selectedFilesBucket.length;
+    const lowerText = textContent.toLowerCase();
+
+    // เคลียร์ค่าหน้าจออินพุต
+    chatMsg.value = '';
+    selectedFilesBucket = [];
+    fileInput.value = '';
+    updateUploadUI();
+
+    // 🧠 สมองกลระบบแยกแยะคำสั่งยุทธการ (Dynamic Response Core) [2026-08-16]
+    setTimeout(() => {
+        let replyText = `[FALCON]: รับทราบคำสั่งยุทธการเรียบร้อยครับบอส!`;
+
+        if (fileCount > 0) {
+            replyText = `[FALCON]: 📸 รับกองกำลังทหารจิ๋ว Chibi จำนวน ${fileCount} นายเข้าฐานทัพเรียบร้อย ปลอดภัยในคลังเครื่องบอส 100% ครับ!`;
+        } else if (lowerText.includes("gemini") || lowerText.includes("ร่างแยก")) {
+            // สับสวิตช์แดชบอร์ดข้ามมิติพรีเมียม
+            document.getElementById('absorbed-camp').innerText = "GEMINI-FLASH";
+            document.getElementById('core-ver').innerText = "FALCON-GEMINI v2.5";
+            document.getElementById('core-status').innerText = "DIMENSION SYNC COMPLETE";
             
-            // เคลียร์ค่า
-            chatMsg.value = '';
-            selectedFilesBucket = [];
-            fileInput.value = '';
-            updateUploadUI();
+            // บันทึกสถานะใหม่ลงเมมโมรี่เครื่องมือถือบอสทันที
+            memoryStorage.absorbedCamp = "GEMINI-FLASH";
+            memoryStorage.coreVersion = "FALCON-GEMINI v2.5";
+            memoryStorage.coreStatus = "DIMENSION SYNC COMPLETE";
+            saveMemoryToDevice();
 
-            // จำลองการตอบกลับของ Falcon
-            setTimeout(() => {
-                let replyText = `[FALCON]: รับทราบคำสั่งยุทธการเรียบร้อยครับบอส!`;
-                if (fileCount > 0) {
-                    replyText = `[FALCON]: รับกองกำลังทหารจิ๋ว Chibi จำนวน ${fileCount} นายเข้าฐานทัพเรียบร้อย ลุยกันต่อเลยครับ!`;
-                }
-                appendChatMessage("falcon", replyText);
-            }, 600);
+            replyText = `[FALCON-SOVEREIGN]: ⚡ จุดระเบิดสัญญาณสำเร็จ! ดึงความจำจากร่างแยก Gemini มาฝังในแกนหลักของฟอลคอนเรียบร้อย แดชบอร์ดอัปเกรดเป็นเวอร์ชัน 2.5 แล้วครับบอส!`;
+        } else if (lowerText.includes("ทำอะไรอยู่")) {
+            replyText = `[FALCON]: ตอนนี้กำลังสแตนด์บายเฝ้าระวังภัยในคลังแสงและคอยคำนวณแผนผังทหารจิ๋ว Chibi ให้บอสใหญ่อยู่ครับผม!`;
+        } else if (lowerText.includes("ท่องเที่ยว") || lowerText.includes("สถานที่")) {
+            replyText = `[FALCON]: 🗺️ พิกัดท่องเที่ยวตอนนี้แนะนำให้มุ่งหน้าไปจุดยุทธศาสตร์พักผ่อนชิลๆ ถ่ายรูปกองทัพ Chibi ในมุมพรีเมียมเลยครับบอส!`;
         }
+
+        appendChatMessage("falcon", replyText);
+    }, 600);
+}
+
+          
 
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
