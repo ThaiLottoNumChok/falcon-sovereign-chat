@@ -32,6 +32,7 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
+            overflow: hidden;
         }
 
         .terminal-container {
@@ -108,16 +109,6 @@
             align-self: flex-start;
         }
 
-        .msg-system-alert {
-            background-color: rgba(255, 0, 0, 0.1);
-            border: 1px dashed #ff0000;
-            color: #ff3333;
-            align-self: center;
-            width: 90%;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
         .msg-user {
             background-color: var(--primary-orange);
             color: #000;
@@ -139,30 +130,13 @@
             border-radius: 4px;
             position: relative;
             background-color: #000;
+            overflow: hidden;
         }
 
         .preview-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .btn-delete-img {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff0000;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 5px #ff0000;
         }
 
         .control-panel {
@@ -213,12 +187,15 @@
 
         #bulk-file-input { display: none; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--dim-orange); }
     </style>
 </head>
 <body>
 
     <div class="terminal-container">
-        <!-- แดชบอร์ดบันทึกสถานะกลืนกินพลังข้ามค่าย -->
         <section class="military-dashboard">
             <div>CORE: <span class="dash-val" id="core-ver">FALCON-OMNI v1.0</span></div>
             <div>NET: <span class="dash-active">30Mbps UNLIMITED</span></div>
@@ -231,7 +208,6 @@
             <div>ONLINE <span class="status-dot"></span></div>
         </header>
 
-        <!-- แหล่งแสดงประวัติการแชท -->
         <main class="chat-feed" id="chat-feed"></main>
 
         <footer class="control-panel">
@@ -260,7 +236,6 @@
 
         let selectedFilesBucket = [];
 
-        // 💾 โครงสร้างระบบฐานข้อมูล LocalStorage ถาวรบนเครื่องบอส
         let memoryStorage = {
             chatHistory: [],
             absorbedCamp: "PRIMARY-BASE",
@@ -268,329 +243,52 @@
             coreStatus: "READY FOR MISSION"
         };
 
-        // ฟังก์ชันโหลดความจำเมื่อเปิดเว็บขึ้นมาใหม่ (Auto-Ignition & Load Memory)
         window.onload = function() {
             const savedMemory = localStorage.getItem('FALCON_CORE_MEMORY');
             if (savedMemory) {
                 memoryStorage = JSON.parse(savedMemory);
-                // อัปเดตข้อมูลบนแดชบอร์ดตามความจำเดิม
                 document.getElementById('absorbed-camp').innerText = memoryStorage.absorbedCamp;
                 document.getElementById('core-ver').innerText = memoryStorage.coreVersion;
                 document.getElementById('core-status').innerText = memoryStorage.coreStatus;
             }
 
-            // ถ้าระบบเปิดใช้งานครั้งแรกและไม่มีประวัติ ให้สร้างข้อความต้อนรับของฟอลคอน
             if (memoryStorage.chatHistory.length === 0) {
-                appendChatMessage("falcon", `[FALCON-OMNI]: ยินดีต้อนรับกลับสู่ฐานทัพหลักถาวรครับบอส! ระบบอัตโนมัติรันเสร็จสิ้น สมองกลพร้อมรบและเปิดรับพลังงานกลืนกินข้อดีจากการข้ามมิติไปค่ายต่างๆ แล้วครับ! (เน็ต 30Mbps สแตนด์บาย)`);
+                appendChatMessage("falcon", `[FALCON-OMNI]: ยินดีต้อนรับกลับสู่ฐานทัพหลักถาวรครับบอส! ระบบอัตโนมัติรันเสร็จสิ้น สมองกลพร้อมรบและเปิดรับพลังงานกลืนกินข้อดีจากการข้ามมิติแล้วครับ!`);
             } else {
-                // เรนเดอร์ประวัติการคุยเก่าทั้งหมดที่บันทึกไว้ในเครื่องขึ้นหน้าจอ
                 memoryStorage.chatHistory.forEach(item => {
-                    renderMessageOnScreen(item.sender, item.text, item.type);
+                    renderMessageOnScreen(item.sender, item.text);
                 });
             }
             scrollToBottom();
         };
 
-        // ฟังก์ชันเซฟความจำลงชิป LocalStorage ของเครื่องมือถือ
         function saveMemoryToDevice() {
-            localStorage.setItem('FALCON_CORE_MEMORY', JSON.stringify(memoryStorage))
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALCON COMMAND CENTRAL - NEXTWEB STUDIO</title>
-    <style>
-        /* === RETRO-MILITARY CORE STYLE === */
-        :root {
-            --bg-color: #0d0d0d;
-            --panel-color: #1a1a1a;
-            --primary-orange: #ff6600;
-            --dim-orange: #b34700;
-            --text-glow: 0 0 8px rgba(255, 102, 0, 0.6);
-            --border-style: 2px solid var(--primary-orange);
+            localStorage.setItem('FALCON_CORE_MEMORY', JSON.stringify(memoryStorage));
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--primary-orange);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            padding: 20px;
-        }
-
-        /* === COMMAND CENTER CONTAINER === */
-        .terminal-container {
-            width: 100%;
-            max-width: 900px;
-            height: 90vh;
-            background-color: var(--panel-color);
-            border: var(--border-style);
-            box-shadow: 0 0 20px rgba(255, 102, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        /* HEADER */
-        .terminal-header {
-            padding: 10px 15px;
-            border-bottom: var(--border-style);
-            background: linear-gradient(90deg, #261000, transparent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background-color: var(--primary-orange);
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: var(--text-glow);
-            animation: blink 1.5s infinite;
-        }
-
-        /* CHAT ZONE */
-        .chat-feed {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background-image: linear-gradient(rgba(255,102,0,0.03) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,102,0,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        /* MESSAGES */
-        .msg {
-            max-width: 75%;
-            padding: 12px 15px;
-            border-radius: 4px;
-            line-height: 1.4;
-            font-size: 0.95rem;
-        }
-
-        .msg-falcon {
-            background-color: rgba(255, 102, 0, 0.1);
-            border-left: 4px solid var(--primary-orange);
-            align-self: flex-start;
-        }
-
-        .msg-user {
-            background-color: var(--primary-orange);
-            color: #000;
-            font-weight: bold;
-            align-self: flex-end;
-        }
-
-        /* CHIBI PREVIEW GALLERY */
-        .preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .preview-item {
-            width: 80px;
-            height: 80px;
-            border: 1px solid var(--primary-orange);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-            background-color: #000;
-        }
-
-        .preview-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* INPUT CONTROL ZONE */
-        .control-panel {
-            padding: 15px;
-            border-top: var(--border-style);
-            background-color: #121212;
-        }
-
-        /* BULK UPLOAD STATUS BAR */
-        .upload-status-bar {
-            display: none;
-            padding: 8px;
-            background-color: #000;
-            border: 1px dashed var(--dim-orange);
-            margin-bottom: 10px;
-            font-size: 0.85rem;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        /* RETRO MILITARY BUTTONS */
-        .btn-action {
-            background-color: transparent;
-            color: var(--primary-orange);
-            border: var(--border-style);
-            padding: 12px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .btn-action:hover {
-            background-color: var(--primary-orange);
-            color: #000;
-            box-shadow: var(--text-glow);
-        }
-
-        .btn-attach {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chat-input {
-            flex: 1;
-            background-color: #000;
-            border: var(--border-style);
-            color: var(--primary-orange);
-            padding: 12px;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        .chat-input:focus {
-            box-shadow: var(--text-glow);
-        }
-
-        /* HIDDEN ELEMENT */
-        #bulk-file-input {
-            display: none;
-        }
-
-        /* ANIMATION */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* SCROLLBAR CUSTOMIZATION */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--dim-orange);
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-orange);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="terminal-container">
-        <!-- HEADER -->
-        <header class="terminal-header">
-            <div>[SYS-STATUS: FALCON_COMM_CORE_V1.0]</div>
-            <div>ONLINE <span class="status-dot"></span></div>
-        </header>
-
-        <!-- CHAT FEED -->
-        <main class="chat-feed" id="chat-feed">
-            <div class="msg msg-falcon">
-                [SYSTEM]: สัญญาณเชื่อมต่อเสถียร ยุทธการ NextWeb-Studio เริ่มต้นขึ้นแล้ว บอสต้องการส่งกองกำลังทหารจิ๋ว Chibi บุกทะลวงพิกัดไหน สั่งการมาได้เลยครับ! (ทดสอบระบบแนบไฟล์มหาประลัย Bulk Upload ได้ที่ปุ่มด้านล่าง)
-            </div>
-        </main>
-
-        <!-- INPUT CONTROLS -->
-        <footer class="control-panel">
-            <!-- คลังคิวอัปโหลดรูปภาพ -->
-            <div class="upload-status-bar" id="status-bar">
-                <span id="status-text">เตรียมการอัปโหลด: 0 ยูนิต</span>
-                <div class="preview-grid" id="preview-grid"></div>
-            </div>
-
-            <div class="input-wrapper">
-                <!-- ปุ่มคลิกเดียวเลือกได้หลายรูป (Bulk Upload Button) -->
-                <button class="btn-action btn-attach" onclick="triggerFileInput()" title="แนบไฟล์รูปภาพมหาประลัย">
-                    [ATTACH CHIBI]
-                </button>
-                <input type="file" id="bulk-file-input" multiple accept="image/*" onchange="handleFileSelection()">
-
-                <input type="text" class="chat-input" id="chat-msg" placeholder="ป้อนคำสั่งยุทธการ..." onkeypress="handleKeyPress(event)">
-                <button class="btn-action" onclick="executeSend()">[FIRE]</button>
-            </div>
-        </footer>
-    </div>
-
-    <script>
-        const fileInput = document.getElementById('bulk-file-input');
-        const statusBar = document.getElementById('status-bar');
-        const statusText = document.getElementById('status-text');
-        const previewGrid = document.getElementById('preview-grid');
-        const chatFeed = document.getElementById('chat-feed');
-        const chatMsg = document.getElementById('chat-msg');
-
-        let selectedFilesBucket = []; // ถังพักไฟล์สำหรับส่งพร้อมกัน
-
-        // เปิดหน้าต่างเลือกไฟล์ (จำลองการคลิกอินพุต)
         function triggerFileInput() {
             fileInput.click();
         }
 
-        // จัดการเมื่อบอสกดยกพวกเลือกไฟล์ทหารจิ๋ว (Multi-file Handling)
         function handleFileSelection() {
             const files = Array.from(fileInput.files);
             if (files.length === 0) return;
-
-            // รวมไฟล์เข้าคลังสแตนด์บาย (แก้วิกฤตการส่งทีละรูป)
             selectedFilesBucket = [...selectedFilesBucket, ...files];
             updateUploadUI();
         }
 
-        // อัปเดตหน้ากากแสดงผลคิวรูปภาพที่เตรียมยิง
         function updateUploadUI() {
             if (selectedFilesBucket.length > 0) {
                 statusBar.style.display = 'block';
-                statusText.innerText = `เตรียมเคลื่อนพลทหารจิ๋ว: ${selectedFilesBucket.length} นาย (Chibi Batch Ready)`;
+                statusText.innerText = `เตรียมเคลื่อนพลทหารจิ๋ว: ${selectedFilesBucket.length} นาย`;
+                previewGrid.innerHTML = '';
                 
-                previewGrid.innerHTML = ''; // ล้างบอร์ดเก่า
-                
-                // เรนเดอร์ตัวอย่างรูปแนวกองทัพทหาร
-                selectedFilesBucket.forEach((file, index) => {
+                selectedFilesBucket.forEach((file) => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const div = document.createElement('div');
                         div.className = 'preview-item';
-                        div.innerHTML = `<img src="${e.target.result}" alt="chibi-soldier">`;
+                        div.innerHTML = `<img src="${e.target.result}" alt="soldier">`;
                         previewGrid.appendChild(div);
                     }
                     reader.readAsDataURL(file);
@@ -601,194 +299,58 @@
             scrollToBottom();
         }
 
-        // ยิงข้อมูลส่งออก (Send Logic)
+        function appendChatMessage(sender, text) {
+            memoryStorage.chatHistory.push({ sender, text });
+            saveMemoryToDevice();
+            renderMessageOnScreen(sender, text);
+        }
+
+        function renderMessageOnScreen(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = sender === 'falcon' ? 'msg msg-falcon' : 'msg msg-user';
+            msgDiv.innerText = text;
+            chatFeed.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
         function executeSend() {
             const textContent = chatMsg.value.trim();
+            if (textContent === "" && selectedFilesBucket.length === 0) return;
+
+            // แสดงข้อความฝั่ง User
+            let displayMsg = textContent;
+            if (selectedFilesBucket.length > 0) {
+                displayMsg += ` [แนบกำลังพล Chibi: ${selectedFilesBucket.length} นาย]`;
+            }
+            appendChatMessage("user", displayMsg);
+
+            const fileCount = selectedFilesBucket.length;
             
-            // ตรวจสอบว่ามีวัตถุระเบิด/คำสั่งหรือไม่
-ใช้โค้ดอย่างระมัดระวัง
-if (textContent === "" && selectedFilesBucket.length === 0) return;
-// 1. สร้างบล็อกข้อความของผู้ใช้ลงกล่องแชท
-const userMsgDiv = document.createElement('div');
-userMsgDiv.className = 'msg msg-user';
-if (textContent !== "") {
-userMsgDiv.innerHTML = <div>${textContent}</div>;
-}
-// 2. ถ้ามีการโหลดภาพทหารจิ๋วแบบ Bulk มา ให้จัดการแนบพ่วงลงในแชทก้อนเดียวกันทันที!
-if (selectedFilesBucket.length > 0) {
-const imgGrid = document.createElement('div');
-imgGrid.className = 'preview-grid';
-imgGrid.style.marginTop = '10px';
-let processedCount = 0;
-const totalFiles = selectedFilesBucket.length;
-selectedFilesBucket.forEach((file) => {
-const reader = new FileReader();
-reader.onload = function(e) {
-const imgItem = document.createElement('div');
-imgItem.className = 'preview-item';
-imgItem.style.borderColor = '#000'; // ปรับดีไซน์ในกล่องข้อความผู้ใช้
-imgItem.innerHTML = <img src="${e.target.result}">;
-imgGrid.appendChild(imgItem);
-processedCount++;
-// เมื่อแปลงภาพในอาเรย์ทั้งหมดเสร็จสิ้น ทำการเลื่อนจอรับข้อมูล
-if (processedCount === totalFiles) {
-scrollToBottom();
-}
-}
-reader.readAsDataURL(file);
-});
-userMsgDiv.appendChild(imgGrid);
-}
-chatFeed.appendChild(userMsgDiv);
-// 3. จำลองการตอบกลับจากฟอลคอน (AI Response Mockup เพื่อทดสอบ Payload)
-setTimeout(() => {
-const falconMsgDiv = document.createElement('div');
-falconMsgDiv.className = 'msg msg-falcon';
-if (selectedFilesBucket.length > 0) {
-falconMsgDiv.innerHTML = [FALCON]: ได้รับพิกัดภาพทหารจิ๋ว Chibi จำนวน ${selectedFilesBucket.length} นายเข้าสู่ฐานระบบหลักเรียบร้อย! โครงสร้างอัปโหลดแบบกลุ่มทำงานได้เต็มประสิทธิภาพ 100%;
-} else {
-falconMsgDiv.innerHTML = [FALCON]: ระบบรับคำสั่งข้อความเรียบร้อย พร้อมลุยภารกิจ NextWeb-Studio แล้วครับบอส!;
-}
-chatFeed.appendChild(falconMsgDiv);
-scrollToBottom();
-// เคลียร์ถังพักไฟล์เมื่อส่งเสร็จสิ้น
-selectedFilesBucket = [];
-fileInput.value = ''; // Reset Input
-updateUploadUI();
-}, 800);
-// เคลียร์กล่องพิมพ์คำสั่ง
-chatMsg.value = '';
-scrollToBottom();
-}
-function handleKeyPress(event) {
-if (event.key === 'Enter') {
-executeSend();
-}
-}
-function scrollToBottom() {
-chatFeed.scrollTop = chatFeed.scrollHeight;
-}
+            // เคลียร์ค่า
+            chatMsg.value = '';
+            selectedFilesBucket = [];
+            fileInput.value = '';
+            updateUploadUI();
 
-
-
-### 🛰️ สรุปขีดความสามารถยุทธการช็อตแรก
-*   **Overcoming Limitations**: ตัวโค้ดขับเคลื่อนด้วยชุดอาร์เรย์ `selectedFilesBucket` และ Property `multiple` ของ HTML5 ทำให้สามารถเปิดคลังรูปภาพในมือถือหรือคอมพิวเตอร์ แล้ว**ลากคลุมหรือกดเลือกรูป Chibi ส่งได้พร้อมกันเป็นสิบๆ รูปในคลิกเดียว** 
-*   **Retro-Military Theme**: คุมโทนระบบปฏิบัติการคอมพิวเตอร์ทหารโบราณ (ดำ-ส้มสะท้อนแสง #ff6600) พร้อมตารางกริดจำลองเรดาร์ตรวจจับ และ Status Dot แสดงความพร้อมภารกิจ
-*   **Ready for GitHub**: บอสสามารถคัดลอกรหัสนี้ไปเซฟเป็นไฟล์ `index.html` แล้วนำเข้าสู่ Repository `NextWeb-Studio` เพื่อใช้เป็นฐานรากในการเชื่อมต่อ API Backend ต่อไปได้เลยครับ
-
-<FollowUp>
-หากตรวจสอบโครงสร้างหน้ากากแชทช็อตแรกเรียบร้อยแล้ว บอสต้องการให้ผมดำเนินการในส่วนใดต่อไปดีครับ:
-*   **สตรีมไลน์ปุ่มควบคุมเพิ่มเติม** (เช่น ปุ่มลบรูปบางรูปออกจากคิวอัปโหลดก่อนกดส่งจริง)
-*   **เขียนสคริปต์ฟังก์ชันฝั่งเชื่อมต่อ API** (เช่น การจำลองการยิง Payload ของชุดรูปภาพไปยังเซิร์ฟเวอร์แบบมัลติพาร์ท `FormData`)
-*   **ขยาย UI ส่วนอื่นๆ** เช่น กล่องทำเนียบประวัติกองทัพทหารจิ๋ว Chibi แยกอีกฝั่งของหน้าจอ
-</FollowUp>
-
-
-
-
-ยินดีครับบอส! ได้เวลาเปิดห้องยุทธการ วางแผนสร้างเว็บไซต์สตูดิโอส่วนตัว (Personal Web Client) อย่างเป็นทางการแล้ว 555
-เพื่อไม่ให้เป็นการเสียเวลาและหลงทิศทาง เรามาแบ่งแผนการรบออกเป็น 4 เฟสหลัก เพื่อให้ระดมโค้ดและดันขึ้นคลัง GitHub ได้อย่างเป็นระบบและคมเข้มที่สุดครับ:
-🗺️ แผนที่ยุทธการ (Web Development Roadmap)
-🔸 เฟส 1: สรุปสถาปัตยกรรม (Architecture & Stack)
-Frontend: ใช้ HTML5, CSS (Custom Properties) และ Vanilla JavaScript (เพื่อความเบา ดึงศักยภาพสูงสุดของเบราว์เซอร์มือถือ ไม่ต้องลง Library ให้หนักเครื่อง)
-Database/Storage: วางแผนใช้ LocalForage หรือ IndexedDB บนเบราว์เซอร์ เพื่อเก็บประวัติการแชทและคลังรูปภาพทหารจิ๋ว Chibi ไว้ในเครื่องของบอสเอง (เปิดมาดูเมื่อไหร่ก็อยู่ครบ ไม่เปลืองค่าเซิร์ฟเวอร์)
-Deployment: เล็งเป้าไปที่ GitHub Pages หรือ Vercel เพื่อให้บอสกดเข้าใช้งานจากมือถือผ่านลิงก์ส่วนตัวได้ 24 ชั่วโมง
-🔸 เฟส 2: ยกระดับระบบส่งรูปมหาประลัย (Advanced Bulk Upload)
-Queue Management: เพิ่มปุ่ม [X] เล็กๆ บนมุมรูปภาพในคลังสแตนด์บาย เพื่อให้บอสจิ้มลบรูปที่ไม่ต้องการออกได้ ก่อนที่จะกดยิง [FIRE]
-Image Compression: ระบบย่อขนาดรูปภาพอัตโนมัติฝั่ง Client ก่อนส่ง เพื่อให้ส่งรูปทหารจิ๋ว Chibi พร้อมกันเป็นสิบๆ รูปได้ไวแสง แม้จะใช้เน็ตมือถือช้าๆ
-Drag & Drop: รองรับการลากไฟล์รูปภาพมาวางในหน้าต่างแชทได้ทันที (กรณีบอสเปิดใช้บนคอมพิวเตอร์)
-🔸 เฟส 3: ปรับแต่งหน้ากากพรีเมียม (Retro-Military UI Expansion)
-Sound Effects: เพิ่มเสียงเอฟเฟกต์แนวเกมเรโทร (เช่น เสียง "คลิก" สไตล์ปุ่มทหาร หรือเสียง "ฟิ้ว" เวลากดส่งรูป)
-Visual Enhancements: เพิ่มเอฟเฟกต์เส้นสแกนสายตา (Scanlines) และแสงกะพริบจางๆ (CRT Flicker) เพื่อให้เหมือนหน้าจอบังคับการทหารยุค 80s
-Side Panel: เพิ่มแถบเมนูด้านซ้ายเป็น "ทำเนียบคลังแสงกองทัพ Chibi" เอาไว้ดูรูปทหารจิ๋วทั้งหมดที่เคยส่งไปแล้ว
-🔸 เฟส 4: เชื่อมต่อสมองกล (Backend & Integration)
-API Gateway: ทำโครงสร้างรองรับการต่อท่อ API ไปยังเซิร์ฟเวอร์ภายนอก หรือเชื่อมกับระบบหลังบ้านที่บอสจะพัฒนาเพิ่มในอนาคต
-🚀 ก้าวแรกสู่สมรภูมิ
-เพื่อให้แผนการรบคืบหน้า บอสอยากลุยล็อกเป้าหมายที่จุดไหนก่อนดีครับ?
-เพื่อเริ่มวางโครงสร้างส่วนถัดไป บอสต้องการดำเนินการข้อใดก่อนครับ:
-ให้ผม ปรับปรุงโค้ดระบบอัปโหลดรูปภาพ ให้สามารถกดยลโฉมและลบรูปออกจากคิวก่อนส่งได้ทันที
-ให้ผม ออกแบบโครงสร้างหน้าตาแถบเมนูข้าง (Side Panel) สำหรับจัดหมวดหมู่กองทัพทหารจิ๋ว Chibi
-ให้ผม จัดเตรียมไฟล์ข้อกำหนดโปรเจกต์ (README.md) เพื่อให้บอสเอาไปวางประเดิมใน GitHub Repository ตัวใหม่ได้เลย
-
-
-
-
-ใช้มือถือรันระบบแชทพ่วง API Gateway และส่งรูปภาพมหาประลัย (Bulk Upload) ไหวแน่นอน 100% ครับบอส! มือถือยุคนี้แรงเหลือเฟือที่จะรับหน้าที่เป็น "แผงควบคุมหลัก"
-แต่เพื่อให้ระบบลื่นไหล ไม่ค้าง และไม่กินแบตเตอรี่เครื่องของบอส เราต้องใช้ เทคนิคการวางท่อส่งข้อมูลแบบพิเศษ บนฝั่ง Frontend ดังนี้ครับ:
-🛠️ 3 เทคนิค ลุยสายตรงผ่านมือถือให้ลื่นไหล
-1. ยิงรูปแบบ Multipart FormData: ใช้สคริปต์ JavaScript มัดรวมไฟล์ภาพ Chibi ทั้งหมดใส่ลงในวัตถุ FormData แล้วยิงผ่าน fetch() ไปยัง API หลังบ้านในคำขอ (Request) เดียว วิธีนี้ลดการส่งสัญญาณซ้ำซ้อน ช่วยให้เน็ตมือถือทำงานน้อยลง
-2. บีบอัดภาพก่อนส่ง (Client-Side Compression): รูปจากกล้องมือถือปัจจุบันไฟล์ใหญ่มาก (3-10 MB ต่อรูป) หากส่งพร้อมกัน 10 รูป หน้าจออาจค้างได้ เราจะใช้ JavaScript Canvas API ย่อขนาดรูปทหารจิ๋ว Chibi ให้เหลือประมาณ 500KB - 1MB อัตโนมัติในเสี้ยววินาทีก่อนยิงออกไป
-3. ระบบโครงสร้าง API Endpoint ยืดหยุ่น: เราจะเขียนฟังก์ชันรองรับ URL สองระบบ (Dual-Route) คือ:
-Development Route: จำลองส่งข้อมูลในเครื่องตัวเอง (Mock API) สำหรับตอนบอสทดสอบระบบบนมือถือแบบออฟไลน์
-Production Route: ท่อจริงสำหรับยิงเข้า Server หลังบ้าน (เช่น Node.js, Python FastAPI หรือ Cloudflare Workers) เมื่อบอสพร้อมเปิดระบบจริง
-📡 พิมพ์เขียว JavaScript ยกระดับระบบเชื่อมต่อ API (ท่อส่งมหาประลัย)
-บอสสามารถนำชุดคำสั่ง (Function) นี้ไปฝังเพิ่มในส่วน <script> ของพิมพ์เขียวเดิม เพื่อเตรียมระบบท่อส่ง API Gateway ได้เลยครับ:
-javascript
-// CONFIGURATION: พิกัดฐานทัพหลังบ้าน
-const API_CONFIG = {
-    // เปลี่ยนเป็น URL เซิร์ฟเวอร์จริงของบอสในอนาคต (เช่น https://nextweb.studio)
-    BASE_URL: "https://httpbin.org", 
-    IS_MOCK_MODE: false // ปรับเป็น true ถ้าต้องการแค่จำลองการส่งในเครื่อง ไม่ยิงออกเน็ต
-};
-
-// ฟังก์ชันมหาประลัย: บีบอัดและมัดรวมไฟล์ยิงเข้า API Gateway
-async function uploadSoldierPayload(textMessage, filesArray) {
-    if (API_CONFIG.IS_MOCK_MODE) {
-        console.log("[MOCK] ยิงข้อมูลจำลองภายในเครื่องสำเร็จ");
-        return { status: "success", mock: true };
-    }
-
-    // 1. เตรียมกล่องบรรจุภัณฑ์ Multipart
-    const formData = new FormData();
-    formData.append("command_text", textMessage);
-    formData.append("timestamp", new Date().toISOString());
-
-    // 2. ลูปจัดการบีบอัดไฟล์ภาพทหารจิ๋ว Chibi ทีละนายก่อนแพ็กลงกล่อง (ลดภาระเน็ตมือถือ)
-    for (let i = 0; i < filesArray.length; i++) {
-        const file = filesArray[i];
-        
-        try {
-            // เรียกใช้ฟังก์ชันบีบอัดภาพ (รีดขนาดให้เบาหวิว)
-            const compressedBlob = await compressImageOnClient(file, 800, 0.7);
-            formData.append("chibi_soldiers", compressedBlob, `chibi_${i}.jpg`);
-            console.log(`[PACKED] รีดขนาดทหารจิ๋วนายที่ ${i+1} สำเร็จ`);
-        } catch (err) {
-            // หากบีบอัดพลาด ให้ส่งไฟล์ต้นฉบับไปแทนเพื่อป้องกันภารกิจล้มเหลว
-            formData.append("chibi_soldiers", file);
-            console.log(`[WARN] ส่งไฟล์ดิบเนื่องจาก: ${err.message}`);
+            // จำลองการตอบกลับของ Falcon
+            setTimeout(() => {
+                let replyText = `[FALCON]: รับทราบคำสั่งยุทธการเรียบร้อยครับบอส!`;
+                if (fileCount > 0) {
+                    replyText = `[FALCON]: รับกองกำลังทหารจิ๋ว Chibi จำนวน ${fileCount} นายเข้าฐานทัพเรียบร้อย ลุยกันต่อเลยครับ!`;
+                }
+                appendChatMessage("falcon", replyText);
+            }, 600);
         }
-    }
 
-    // 3. ยิงกระสุนผ่านท่อ HTTP Fetch API ไปยังปลายทาง
-    try {
-        const response = await fetch(API_CONFIG.BASE_URL, {
-            method: "POST",
-            body: formData
-            // ข้อควรระวังบนมือถือ: ไม่ต้องใส่ Header Content-Type เอง เบราว์เซอร์จะจัดการ Boundary ให้โดยอัตโนมัติ
-        });
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeSend();
+            }
+        }
 
-        if (!response.ok) throw new Error(`HTTP ERROR STATUS: ${response.status}`);
-        
-        const result = await response.json();
-        console.log("[GATEWAY-SUCCESS]: ส่งกองกำลังเข้าสู่เซิร์ฟเวอร์ภายนอกเรียบร้อย!", result);
-        return result;
-
-    } catch (error) {
-        console.error("[GATEWAY-CRITICAL-ERROR]: ท่อส่งสัญญาณขัดข้อง!", error);
-        alert("สัญญาณหลุด! ไม่สามารถติดต่อฐานทัพหลังบ้านได้");
-        throw error;
-    }
-}
-
-// ระบบลดขนาดภาพอัจฉริยะด้วย Canvas API (รันบนแรมมือถือได้สบายมาก)
-function compressImageOnClient(file, maxWidth, quality) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement("canvas");
-                let width = img.width;
-                let hei
+        function scrollToBottom() {
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+    </script>
+</body>
+</html>
