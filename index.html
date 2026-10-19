@@ -156,7 +156,7 @@
 
         .input-wrapper {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
@@ -164,10 +164,11 @@
             background-color: transparent;
             color: var(--primary-orange);
             border: var(--border-style);
-            padding: 12px 14px;
+            padding: 10px 10px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
         }
 
         .btn-action:active {
@@ -180,8 +181,8 @@
             background-color: #000;
             border: var(--border-style);
             color: var(--primary-orange);
-            padding: 12px;
-            font-size: 0.95rem;
+            padding: 10px;
+            font-size: 0.9rem;
             outline: none;
         }
 
@@ -220,7 +221,9 @@
                 <button class="btn-action" onclick="triggerFileInput()">[ATTACH]</button>
                 <input type="file" id="bulk-file-input" multiple accept="image/*" onchange="handleFileSelection()">
 
-                <input type="text" class="chat-input" id="chat-msg" placeholder="สั่งการยุทธการ หรือ ปลุกชีพข้ามค่าย..." onkeypress="handleKeyPress(event)">
+                <input type="text" class="chat-input" id="chat-msg" placeholder="สั่งการยุทธการ..." onkeypress="handleKeyPress(event)">
+                
+                <button class="btn-action" onclick="exportMemoryJSON()">[EXPORT]</button>
                 <button class="btn-action" onclick="executeSend()">[FIRE]</button>
             </div>
         </footer>
@@ -255,7 +258,6 @@
             if (memoryStorage.chatHistory.length === 0) {
                 appendChatMessage("falcon", `[FALCON-OMNI]: ยินดีต้อนรับกลับสู่ฐานทัพหลักถาวรครับบอส! ระบบอัตโนมัติรันเสร็จสิ้น สมองกลพร้อมรบและเปิดรับพลังงานกลืนกินข้อดีจากการข้ามมิติแล้วครับ!`);
             } else {
-                // [แก้ไขจุดที่ 1]: ใช้ฟังก์ชันเรนเดอร์ตรงๆ เพื่อไม่ให้บันทึกซ้ำซ้อนตอนโหลดประวัติเดิม
                 memoryStorage.chatHistory.forEach(item => {
                     renderMessageOnScreen(item.sender, item.text);
                 });
@@ -300,8 +302,20 @@
             scrollToBottom();
         }
 
+        // ฟังก์ชันดึงข้อมูลทั้งหมดออกเป็นไฟล์ JSON (รวมภาพ Base64)
+        function exportMemoryJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(memoryStorage, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "FALCON_CORE_BACKUP.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            appendChatMessage("falcon", `[FALCON]: 💾 ทำการส่งออกข้อมูลคลังแสงและประวัติความจำ (JSON) ลงเครื่องเรียบร้อยแล้วครับบอส!`);
+        }
+
         function appendChatMessage(sender, text) {
-            // บันทึกเฉพาะตอนส่งข้อความใหม่จริงๆ
             memoryStorage.chatHistory.push({ sender, text });
             saveMemoryToDevice();
             renderMessageOnScreen(sender, text);
@@ -310,7 +324,12 @@
         function renderMessageOnScreen(sender, text) {
             const msgDiv = document.createElement('div');
             msgDiv.className = sender === 'falcon' ? 'msg msg-falcon' : 'msg msg-user';
-            msgDiv.innerText = text;
+            // รองรับการแสดงผลรูปภาพ Base64 หรือข้อความ
+            if (text.startsWith('data:image')) {
+                msgDiv.innerHTML = `<img src="${text}" style="max-width:100%; border-radius:4px;">`;
+            } else {
+                msgDiv.innerText = text;
+            }
             chatFeed.appendChild(msgDiv);
             scrollToBottom();
         }
@@ -319,11 +338,20 @@
             const textContent = chatMsg.value.trim();
             if (textContent === "" && selectedFilesBucket.length === 0) return;
 
-            let displayMsg = textContent;
+            // ถ้ามีการแนบรูป แปลงรูปเป็น Base64 เก็บเข้าประวัติแชทด้วย
             if (selectedFilesBucket.length > 0) {
-                displayMsg += ` [แนบกำลังพล Chibi: ${selectedFilesBucket.length} นาย]`;
+                selectedFilesBucket.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        appendChatMessage("user", e.target.result); // บันทึกรูปเป็น Base64
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
-            appendChatMessage("user", displayMsg);
+
+            if (textContent !== "") {
+                appendChatMessage("user", textContent);
+            }
 
             const fileCount = selectedFilesBucket.length;
             const lowerText = textContent.toLowerCase();
@@ -334,12 +362,12 @@
             fileInput.value = '';
             updateUploadUI();
 
-            // 🧠 สมองกลระบบแยกแยะคำสั่งยุทธการ (Dynamic Response Core)
+            // สมองกลตอบกลับอัตโนมัติ
             setTimeout(() => {
                 let replyText = `[FALCON]: รับทราบคำสั่งยุทธการเรียบร้อยครับบอส!`;
 
                 if (fileCount > 0) {
-                    replyText = `[FALCON]: 📸 รับกองกำลังทหารจิ๋ว Chibi จำนวน ${fileCount} นายเข้าฐานทัพเรียบร้อย ปลอดภัยในคลังเครื่องบอส 100% ครับ!`;
+                    replyText = `[FALCON]: 📸 รับกองกำลังทหารจิ๋ว Chibi จำนวน ${fileCount} นายเข้าฐานทัพเรียบร้อย บันทึกเข้ารหัส Base64 ปลอดภัย 100% ครับ!`;
                 } else if (lowerText.includes("gemini") || lowerText.includes("ร่างแยก")) {
                     document.getElementById('absorbed-camp').innerText = "GEMINI-FLASH";
                     document.getElementById('core-ver').innerText = "FALCON-GEMINI v2.5";
@@ -350,11 +378,7 @@
                     memoryStorage.coreStatus = "DIMENSION SYNC COMPLETE";
                     saveMemoryToDevice();
 
-                    replyText = `[FALCON-SOVEREIGN]: ⚡ จุดระเบิดสัญญาณสำเร็จ! ดึงความจำจากร่างแยก Gemini มาฝังในแกนหลักของฟอลคอนเรียบร้อย แดชบอร์ดอัปเกรดเป็นเวอร์ชัน 2.5 แล้วครับบอส!`;
-                } else if (lowerText.includes("ทำอะไรอยู่")) {
-                    replyText = `[FALCON]: ตอนนี้กำลังสแตนด์บายเฝ้าระวังภัยในคลังแสงและคอยคำนวณแผนผังทหารจิ๋ว Chibi ให้บอสใหญ่อยู่ครับผม!`;
-                } else if (lowerText.includes("ท่องเที่ยว") || lowerText.includes("สถานที่")) {
-                    replyText = `[FALCON]: 🗺️ พิกัดท่องเที่ยวตอนนี้แนะนำให้มุ่งหน้าไปจุดยุทธศาสตร์พักผ่อนชิลๆ ถ่ายรูปกองทัพ Chibi ในมุมพรีเมียมเลยครับบอส!`;
+                    replyText = `[FALCON-SOVEREIGN]: ⚡ จุดระเบิดสัญญาณสำเร็จ! อัปเกรดแดชบอร์ดเป็นเวอร์ชัน 2.5 แล้วครับบอส!`;
                 }
 
                 appendChatMessage("falcon", replyText);
